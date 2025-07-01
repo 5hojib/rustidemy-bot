@@ -15,7 +15,7 @@ The bot is configured using environment variables:
     <img src="images/render.svg" alt="Deploy to Render" style="display: block; margin-bottom: 10px;">
   </a>
   <br>
-  <a href="https://heroku.com/deploy">
+  <a href="https://heroku.com/deploy?template=https://github.com/5hojib/rustidemy-bot">
     <img src="images/heroku.svg" alt="Deploy to Heroku" style="display: block;">
   </a>
 </div>
