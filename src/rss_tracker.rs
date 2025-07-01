@@ -2,7 +2,6 @@ use crate::config::Config;
 use crate::udemy_extractor::extract_udemy_url;
 use anyhow::{Context, Result};
 use rss::Channel;
-use std::collections::HashSet;
 use std::sync::Arc;
 use teloxide::{
     prelude::*,
@@ -10,12 +9,13 @@ use teloxide::{
 };
 use tokio::sync::Mutex;
 use tokio::time::{sleep, Duration};
+use lru::LruCache;
 
 pub struct RssFeedTracker {
     bot: Bot,
     channel_id: ChatId,
     feed_url: String,
-    seen_entries: Arc<Mutex<HashSet<String>>>,
+    seen_entries: Arc<Mutex<LruCache<String, ()>>>,
 }
 
 impl RssFeedTracker {
@@ -25,7 +25,7 @@ impl RssFeedTracker {
             bot: Bot::new(config.bot_token.clone()),
             channel_id: config.channel_id,
             feed_url,
-            seen_entries: Arc::new(Mutex::new(HashSet::new())),
+            seen_entries: Arc::new(Mutex::new(LruCache::new(500))),
         })
     }
 
@@ -35,7 +35,7 @@ impl RssFeedTracker {
         if let Some(link) = item.link() {
             match extract_udemy_url(link).await {
                 Ok(udemy_url) => {
-                    let caption = title.to_string();
+                    let caption = title.clone();
                     let keyboard = InlineKeyboardMarkup::new([vec![InlineKeyboardButton::url(
                         "Get Course".to_string(),
                         udemy_url.clone(),
@@ -73,7 +73,7 @@ impl RssFeedTracker {
             if !seen_entries.contains(&entry_id) {
                 match self.create_and_send_message(item).await {
                     Ok(_) => {
-                        seen_entries.insert(entry_id);
+                        seen_entries.put(entry_id, ());
                     }
                     Err(e) => {
                         eprintln!("Failed to process entry: {e}");
