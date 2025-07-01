@@ -1,7 +1,9 @@
 use crate::config::Config;
 use crate::udemy_extractor::extract_udemy_url;
 use anyhow::{Context, Result};
+use lru::LruCache;
 use rss::Channel;
+use std::num::NonZeroUsize;
 use std::sync::Arc;
 use teloxide::{
     prelude::*,
@@ -9,8 +11,6 @@ use teloxide::{
 };
 use tokio::sync::Mutex;
 use tokio::time::{sleep, Duration};
-use lru::LruCache;
-use std::num::NonZeroUsize;
 
 pub struct RssFeedTracker {
     bot: Bot,
