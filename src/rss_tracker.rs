@@ -10,6 +10,7 @@ use teloxide::{
 use tokio::sync::Mutex;
 use tokio::time::{sleep, Duration};
 use lru::LruCache;
+use std::num::NonZeroUsize;
 
 pub struct RssFeedTracker {
     bot: Bot,
@@ -25,7 +26,7 @@ impl RssFeedTracker {
             bot: Bot::new(config.bot_token.clone()),
             channel_id: config.channel_id,
             feed_url,
-            seen_entries: Arc::new(Mutex::new(LruCache::new(500))),
+            seen_entries: Arc::new(Mutex::new(LruCache::new(NonZeroUsize::new(500).unwrap()))),
         })
     }
 
