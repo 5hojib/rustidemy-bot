@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RSS Feed Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Arial Black', sans-serif;
+      background: linear-gradient(135deg, #141c1e 0%, #1a2428 100%);
+      color: #e1f6e7;
+    }
+    
+    .container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    
+    h3 {
+      margin-bottom: 1rem;
+    }
+    
+    .status-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      background: #4CAF50;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      animation: blink 2s infinite;
+    }
+    
+    @keyframes blink {
+      
+      0%,
+      50% {
+        opacity: 1;
+      }
+      
+      51%,
+      100% {
+        opacity: 0.3;
+      }
+    }
+    
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="status-card">
+      <h3><span class="status-indicator"></span>Service Status</h3>
+      <p>RSS tracking service is running</p>
+      <p>Check interval: 5 minutes</p>
+    </div>
+    <div class="footer">
+      <p>Built with Rust & Axum<br>Built by Mehedi Hasan Shojib</p>
+    </div>
+  </div>
+</body>
+
+</html>

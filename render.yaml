@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: rustydemi
+    env: docker
+    region: Frankfurt
+    plan: free
+    envVars:
+      - key: BOT_TOKEN
+        # value: ""
+        sync: false
+      - key: CHANNEL_ID
+        # value: ""
+        sync: false
+      - key: PORT
+        value: "80"

@@ -1,0 +1,36 @@
+name: Build and Push Base Docker Image
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Dockerfile.base'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: 5hojib
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Base Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.base
+          push: true
+          tags: 5hojib/rustidemy:latest

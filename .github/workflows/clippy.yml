@@ -1,0 +1,46 @@
+name: lint and update dependencies
+
+on:
+  push:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint_fix_format_update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust
+        uses: crusty-pie/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install Clippy and Rustfmt
+        run: |
+          rustup component add clippy
+          rustup component add rustfmt
+
+      - name: Run Clippy with Fixes
+        run: cargo clippy --fix --allow-dirty --allow-staged
+
+      - name: Format Code
+        run: cargo fmt --all --verbose
+
+      - name: Update Dependencies
+        run: cargo update --verbose
+
+      - name: Commit and Push All Changes
+        run: |
+          git config --local user.email "yesiamshojib@gmail.com"
+          git config --local user.name "5hojib"
+          git add .
+          git commit -m "style: format code, and update dependencies." || echo "No changes to commit"
+          git push origin ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GX_TOKEN }}
