@@ -21,7 +21,12 @@ fn extract_main_description(description_html: &str, title: &str) -> String {
     let mut combined_text = String::new();
 
     for element in fragment.select(&selector) {
-        let text = element.text().collect::<Vec<_>>().join(" ").trim().to_string();
+        let text = element
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .trim()
+            .to_string();
 
         // Skip if it matches the title or is empty
         if !text.is_empty() && !text.contains(title) && !text.starts_with("http") {
@@ -35,11 +40,7 @@ fn extract_main_description(description_html: &str, title: &str) -> String {
     }
 
     if let Some((before, after)) = combined_text.split_once("Published by:") {
-        format!(
-            "{}\n\nPublished by: {}",
-            before.trim(),
-            after.trim()
-        )
+        format!("{}\n\nPublished by: {}", before.trim(), after.trim())
     } else {
         combined_text
     }
