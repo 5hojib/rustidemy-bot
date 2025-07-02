@@ -13,6 +13,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/release/bot .
+COPY --from=builder /app/target/release/rustidemy-bot .
 
-CMD ["./bot"]
+CMD ["./rustidemy-bot"]
