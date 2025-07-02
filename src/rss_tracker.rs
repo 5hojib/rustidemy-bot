@@ -18,7 +18,8 @@ fn extract_main_description(description_html: &str, title: &str) -> String {
     let fragment = Html::parse_fragment(description_html);
     let selector = Selector::parse("p").unwrap();
 
-    let mut lines = vec![];
+    let mut main_lines = vec![];
+    let mut published_line = None;
 
     for element in fragment.select(&selector) {
         let text = element
@@ -28,16 +29,27 @@ fn extract_main_description(description_html: &str, title: &str) -> String {
             .trim()
             .to_string();
 
-        if !text.is_empty() && !text.contains(title) {
-            lines.push(text);
+        if text.is_empty() || text.contains(title) {
+            continue;
+        }
+
+        if text.starts_with("Published by:") {
+            published_line = Some(text);
+        } else {
+            main_lines.push(text);
         }
     }
 
-    match lines.len() {
-        0 => "No description provided".to_string(),
-        1 => lines[0].clone(),
-        2 => format!("{}\n\n{}", lines[0], lines[1]),
-        _ => format!("{}\n\n{}\n\n{}", lines[0], lines[1], lines[2]),
+    let mut result = main_lines.join("\n\n");
+
+    if let Some(published) = published_line {
+        result = format!("{result}\n\n{published}");
+    }
+
+    if result.is_empty() {
+        "No description provided".to_string()
+    } else {
+        result
     }
 }
 
