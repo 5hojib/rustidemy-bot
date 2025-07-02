@@ -12,7 +12,6 @@ use teloxide::{
 use tokio::sync::Mutex;
 use tokio::time::{Duration, sleep};
 
-
 use scraper::{Html, Selector};
 
 fn extract_main_description(description_html: &str, title: &str) -> String {
@@ -22,7 +21,12 @@ fn extract_main_description(description_html: &str, title: &str) -> String {
     let mut lines = vec![];
 
     for element in fragment.select(&selector) {
-        let text = element.text().collect::<Vec<_>>().join(" ").trim().to_string();
+        let text = element
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .trim()
+            .to_string();
 
         if !text.is_empty() && !text.contains(title) {
             lines.push(text);
@@ -59,7 +63,6 @@ impl RssFeedTracker {
         let title = item.title().unwrap_or("Untitled Course").to_string();
         let raw_description = item.description().unwrap_or("").to_string();
         let body = extract_main_description(&raw_description, &title);
-        
 
         if let Some(link) = item.link() {
             match extract_udemy_url(link).await {
