@@ -28,7 +28,6 @@ fn extract_main_description(description_html: &str, title: &str) -> String {
             .trim()
             .to_string();
 
-        // Skip if it matches the title or is empty
         if !text.is_empty() && !text.contains(title) && !text.starts_with("http") {
             combined_text = text;
             break;
@@ -72,7 +71,7 @@ impl RssFeedTracker {
         if let Some(link) = item.link() {
             match extract_udemy_url(link).await {
                 Ok(udemy_url) => {
-                    let caption = format!("{title}\n\n{body}");
+                    let caption = format!("{title}\n\nDescription: {body}");
                     let keyboard = InlineKeyboardMarkup::new([vec![InlineKeyboardButton::url(
                         "Get Course".to_string(),
                         udemy_url.clone(),

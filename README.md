@@ -1,21 +1,26 @@
 # rustidemy-bot
 
-rustidemy-bot is a Telegram bot that fetches new course listings from an RSS feed and posts them to a specified Telegram channel. It's designed to find and share Udemy course URLs.
+`rustidemy-bot` is a Telegram bot that fetches free Udemy course listings from an RSS feed and posts them to a specified Telegram channel.
 
 ## Configuration
 
-The bot is configured using environment variables:
+Set the following environment variables:
 
-*   `BOT_TOKEN` (Required): Your Telegram bot token.
-*   `CHANNEL_ID` (Required): The ID of the Telegram channel where messages will be sent.
+- `BOT_TOKEN` (required): Your Telegram bot token.
+- `CHANNEL_ID` (required): ID of the channel where messages will be sent.
 
 ## Deploy
-<div align="center">
+
+<div align="left">
   <a href="https://render.com/deploy">
-    <img src="images/render.svg" alt="Deploy to Render" style="display: block; margin-bottom: 10px;">
+    <img src="images/render.svg" alt="Deploy to Render">
   </a>
   <br>
   <a href="https://heroku.com/deploy?template=https://github.com/5hojib/rustidemy-bot">
-    <img src="images/heroku.svg" alt="Deploy to Heroku" style="display: block;">
+    <img src="images/heroku.svg" alt="Deploy to Heroku">
   </a>
-</div>
+</div><br>
+
+> [!Note]
+> If you're using Heroku eco dynos or Render free plan, use a cron job to keep the bot alive:
+https://cron-job.org

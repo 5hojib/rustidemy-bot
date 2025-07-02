@@ -19,13 +19,11 @@ impl ServerConfig {
         }
     }
 
-    /// Convert to SocketAddr
     pub fn to_socket_addr(&self) -> SocketAddr {
         SocketAddr::from((self.host, self.port))
     }
 }
 
-/// Start the web server
 pub async fn start_server() {
     let config = ServerConfig::from_env();
     let app = create_routes();
