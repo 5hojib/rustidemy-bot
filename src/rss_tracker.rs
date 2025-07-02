@@ -18,38 +18,30 @@ fn extract_main_description(description_html: &str, title: &str) -> String {
     let fragment = Html::parse_fragment(description_html);
     let selector = Selector::parse("p").unwrap();
 
-    let mut main_lines = vec![];
-    let mut published_line = None;
+    let mut combined_text = String::new();
 
     for element in fragment.select(&selector) {
-        let text = element
-            .text()
-            .collect::<Vec<_>>()
-            .join(" ")
-            .trim()
-            .to_string();
+        let text = element.text().collect::<Vec<_>>().join(" ").trim().to_string();
 
-        if text.is_empty() || text.contains(title) {
-            continue;
-        }
-
-        if text.starts_with("Published by:") {
-            published_line = Some(text);
-        } else {
-            main_lines.push(text);
+        // Skip if it matches the title or is empty
+        if !text.is_empty() && !text.contains(title) && !text.starts_with("http") {
+            combined_text = text;
+            break;
         }
     }
 
-    let mut result = main_lines.join("\n\n");
-
-    if let Some(published) = published_line {
-        result = format!("{result}\n\n{published}");
+    if combined_text.is_empty() {
+        return "No description provided".to_string();
     }
 
-    if result.is_empty() {
-        "No description provided".to_string()
+    if let Some((before, after)) = combined_text.split_once("Published by:") {
+        format!(
+            "{}\n\nPublished by: {}",
+            before.trim(),
+            after.trim()
+        )
     } else {
-        result
+        combined_text
     }
 }
 
