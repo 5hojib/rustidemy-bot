@@ -12,6 +12,31 @@ use teloxide::{
 use tokio::sync::Mutex;
 use tokio::time::{Duration, sleep};
 
+
+use scraper::{Html, Selector};
+
+fn extract_main_description(description_html: &str, title: &str) -> String {
+    let fragment = Html::parse_fragment(description_html);
+    let selector = Selector::parse("p").unwrap();
+
+    let mut lines = vec![];
+
+    for element in fragment.select(&selector) {
+        let text = element.text().collect::<Vec<_>>().join(" ").trim().to_string();
+
+        if !text.is_empty() && !text.contains(title) {
+            lines.push(text);
+        }
+    }
+
+    match lines.len() {
+        0 => "No description provided".to_string(),
+        1 => lines[0].clone(),
+        2 => format!("{}\n\n{}", lines[0], lines[1]),
+        _ => format!("{}\n\n{}\n\n{}", lines[0], lines[1], lines[2]),
+    }
+}
+
 pub struct RssFeedTracker {
     bot: Bot,
     channel_id: ChatId,
@@ -32,15 +57,14 @@ impl RssFeedTracker {
 
     async fn create_and_send_message(&self, item: &rss::Item) -> Result<()> {
         let title = item.title().unwrap_or("Untitled Course").to_string();
-        let description = item
-            .description()
-            .unwrap_or("No description provided")
-            .to_string();
+        let raw_description = item.description().unwrap_or("").to_string();
+        let body = extract_main_description(&raw_description, &title);
+        
 
         if let Some(link) = item.link() {
             match extract_udemy_url(link).await {
                 Ok(udemy_url) => {
-                    let caption = format!("{title}\n{description}");
+                    let caption = format!("{title}\n\n{body}");
                     let keyboard = InlineKeyboardMarkup::new([vec![InlineKeyboardButton::url(
                         "Get Course".to_string(),
                         udemy_url.clone(),
