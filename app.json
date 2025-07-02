@@ -1,5 +1,5 @@
 {
-  "name": "File share bot",
+  "name": "Udemy free course fetcher bot",
   "env": {
     "BOT_TOKEN": {
       "description": "Your Bot token, Get it from @Botfather",

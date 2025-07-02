@@ -7,8 +7,6 @@ on:
       - 'Dockerfile.base'
       - 'Cargo.toml'
       - 'Cargo.lock'
-    branches:
-      - main
 
 jobs:
   build-and-push:

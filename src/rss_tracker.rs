@@ -1,21 +1,55 @@
 use crate::config::Config;
 use crate::udemy_extractor::extract_udemy_url;
 use anyhow::{Context, Result};
+use lru::LruCache;
 use rss::Channel;
-use std::collections::HashSet;
+use std::num::NonZeroUsize;
 use std::sync::Arc;
 use teloxide::{
     prelude::*,
     types::{ChatId, InlineKeyboardButton, InlineKeyboardMarkup, InputFile},
 };
 use tokio::sync::Mutex;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
+
+use scraper::{Html, Selector};
+
+fn extract_main_description(description_html: &str, title: &str) -> String {
+    let fragment = Html::parse_fragment(description_html);
+    let selector = Selector::parse("p").unwrap();
+
+    let mut combined_text = String::new();
+
+    for element in fragment.select(&selector) {
+        let text = element
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .trim()
+            .to_string();
+
+        if !text.is_empty() && !text.contains(title) && !text.starts_with("http") {
+            combined_text = text;
+            break;
+        }
+    }
+
+    if combined_text.is_empty() {
+        return "No description provided".to_string();
+    }
+
+    if let Some((before, after)) = combined_text.split_once("Published by:") {
+        format!("{}\n\nPublished by: {}", before.trim(), after.trim())
+    } else {
+        combined_text
+    }
+}
 
 pub struct RssFeedTracker {
     bot: Bot,
     channel_id: ChatId,
     feed_url: String,
-    seen_entries: Arc<Mutex<HashSet<String>>>,
+    seen_entries: Arc<Mutex<LruCache<String, ()>>>,
 }
 
 impl RssFeedTracker {
@@ -25,17 +59,19 @@ impl RssFeedTracker {
             bot: Bot::new(config.bot_token.clone()),
             channel_id: config.channel_id,
             feed_url,
-            seen_entries: Arc::new(Mutex::new(HashSet::new())),
+            seen_entries: Arc::new(Mutex::new(LruCache::new(NonZeroUsize::new(500).unwrap()))),
         })
     }
 
     async fn create_and_send_message(&self, item: &rss::Item) -> Result<()> {
         let title = item.title().unwrap_or("Untitled Course").to_string();
+        let raw_description = item.description().unwrap_or("").to_string();
+        let body = extract_main_description(&raw_description, &title);
 
         if let Some(link) = item.link() {
             match extract_udemy_url(link).await {
                 Ok(udemy_url) => {
-                    let caption = title.to_string();
+                    let caption = format!("{title}\n\nDescription: {body}");
                     let keyboard = InlineKeyboardMarkup::new([vec![InlineKeyboardButton::url(
                         "Get Course".to_string(),
                         udemy_url.clone(),
@@ -73,7 +109,7 @@ impl RssFeedTracker {
             if !seen_entries.contains(&entry_id) {
                 match self.create_and_send_message(item).await {
                     Ok(_) => {
-                        seen_entries.insert(entry_id);
+                        seen_entries.put(entry_id, ());
                     }
                     Err(e) => {
                         eprintln!("Failed to process entry: {e}");

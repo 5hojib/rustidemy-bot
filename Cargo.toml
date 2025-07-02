@@ -1,15 +1,16 @@
 [package]
-name = "RustidemyBot"
+name = "rustidemy-bot"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 authors = ["5hojib <yesiamshojib@gmail.com>"]
-repository = "https://github.com/5hojib/RustidemyBot"
+repository = "https://github.com/5hojib/rustidemy-bot"
 
 [dependencies]
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.40", features = ["full"] }
 teloxide = { version = "0.16", features = ["macros"] }
 rss = "2.0"
-reqwest = { version = "0.12.21", features = ["json", "cookies"] }
-scraper = "0.23.1"
+reqwest = { version = "0.12", features = ["json", "cookies"] }
+scraper = "0.23"
 anyhow = "1.0"
-axum = "0.8.4"
+axum = "0.8"
+lru = "0.15"

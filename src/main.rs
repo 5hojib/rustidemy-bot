@@ -8,7 +8,6 @@ use rss_tracker::RssFeedTracker;
 
 mod udemy_extractor;
 
-// Web server modules
 mod web;
 use web::server;
 
@@ -16,7 +15,6 @@ use web::server;
 async fn main() -> Result<()> {
     let config = Config::new()?;
 
-    // Start both RSS tracker and web server concurrently
     let web_server = tokio::spawn(async {
         server::start_server().await;
     });
@@ -26,7 +24,6 @@ async fn main() -> Result<()> {
         tracker.start_tracking(5).await
     });
 
-    // Wait for either task to complete (or fail)
     tokio::select! {
         web_result = web_server => {
             println!("Web server task completed");
