@@ -10,7 +10,7 @@ use teloxide::{
     types::{ChatId, InlineKeyboardButton, InlineKeyboardMarkup, InputFile},
 };
 use tokio::sync::Mutex;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 pub struct RssFeedTracker {
     bot: Bot,
@@ -32,7 +32,10 @@ impl RssFeedTracker {
 
     async fn create_and_send_message(&self, item: &rss::Item) -> Result<()> {
         let title = item.title().unwrap_or("Untitled Course").to_string();
-        let description = item.description().unwrap_or("No description provided").to_string();
+        let description = item
+            .description()
+            .unwrap_or("No description provided")
+            .to_string();
 
         if let Some(link) = item.link() {
             match extract_udemy_url(link).await {
