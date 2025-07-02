@@ -1,9 +1,9 @@
 [package]
-name = "RustidemyBot"
+name = "rustidemy-bot"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 authors = ["5hojib <yesiamshojib@gmail.com>"]
-repository = "https://github.com/5hojib/RustidemyBot"
+repository = "https://github.com/5hojib/rustidemy-bot"
 
 [dependencies]
 tokio = { version = "1.40", features = ["full"] }

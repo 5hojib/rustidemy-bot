@@ -32,11 +32,12 @@ impl RssFeedTracker {
 
     async fn create_and_send_message(&self, item: &rss::Item) -> Result<()> {
         let title = item.title().unwrap_or("Untitled Course").to_string();
+        let description = item.description().unwrap_or("No description provided").to_string();
 
         if let Some(link) = item.link() {
             match extract_udemy_url(link).await {
                 Ok(udemy_url) => {
-                    let caption = title.clone();
+                    let caption = format!("{title}\n{description}");
                     let keyboard = InlineKeyboardMarkup::new([vec![InlineKeyboardButton::url(
                         "Get Course".to_string(),
                         udemy_url.clone(),

@@ -1,6 +1,6 @@
-# RustidemyBot
+# rustidemy-bot
 
-RustidemyBot is a Telegram bot that fetches new course listings from an RSS feed and posts them to a specified Telegram channel. It's designed to find and share Udemy course URLs.
+rustidemy-bot is a Telegram bot that fetches new course listings from an RSS feed and posts them to a specified Telegram channel. It's designed to find and share Udemy course URLs.
 
 ## Configuration
 
