@@ -1,5 +1,12 @@
-use crate::web::routes::create_routes;
-use std::net::SocketAddr;
+use crate::{
+    web::routes::create_routes,
+    web_cache::WebCache,
+};
+use std::{
+    net::SocketAddr,
+    sync::Arc,
+};
+use tokio::sync::Mutex;
 
 pub struct ServerConfig {
     pub host: [u8; 4],
@@ -9,7 +16,7 @@ pub struct ServerConfig {
 impl ServerConfig {
     pub fn from_env() -> Self {
         let port = std::env::var("PORT")
-            .unwrap_or_else(|_| "80".to_string())
+            .unwrap_or_else(|_| "8080".to_string())
             .parse::<u16>()
             .expect("PORT must be a valid number");
 
@@ -24,9 +31,9 @@ impl ServerConfig {
     }
 }
 
-pub async fn start_server() {
+pub async fn start_server(cache: Arc<Mutex<WebCache>>) {
     let config = ServerConfig::from_env();
-    let app = create_routes();
+    let app = create_routes(cache);
 
     let addr = config.to_socket_addr();
 

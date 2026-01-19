@@ -12,38 +12,7 @@ use teloxide::{
 use tokio::sync::Mutex;
 use tokio::time::{Duration, sleep};
 
-use scraper::{Html, Selector};
-
-fn extract_main_description(description_html: &str, title: &str) -> String {
-    let fragment = Html::parse_fragment(description_html);
-    let selector = Selector::parse("p").unwrap();
-
-    let mut combined_text = String::new();
-
-    for element in fragment.select(&selector) {
-        let text = element
-            .text()
-            .collect::<Vec<_>>()
-            .join(" ")
-            .trim()
-            .to_string();
-
-        if !text.is_empty() && !text.contains(title) && !text.starts_with("http") {
-            combined_text = text;
-            break;
-        }
-    }
-
-    if combined_text.is_empty() {
-        return "No description provided".to_string();
-    }
-
-    if let Some((before, after)) = combined_text.split_once("Published by:") {
-        format!("{}\n\nPublished by: {}", before.trim(), after.trim())
-    } else {
-        combined_text
-    }
-}
+use crate::udemy_extractor::extract_main_description;
 
 pub struct RssFeedTracker {
     bot: Bot,
@@ -53,12 +22,11 @@ pub struct RssFeedTracker {
 }
 
 impl RssFeedTracker {
-    pub async fn new(config: &Config) -> Result<Self> {
-        let feed_url = "https://www.discudemy.com/feed".to_string();
+    pub async fn new(config: &Arc<Config>) -> Result<Self> {
         Ok(RssFeedTracker {
             bot: Bot::new(config.bot_token.clone()),
             channel_id: config.channel_id,
-            feed_url,
+            feed_url: config.feed_url.clone(),
             seen_entries: Arc::new(Mutex::new(LruCache::new(NonZeroUsize::new(500).unwrap()))),
         })
     }

@@ -1,0 +1,10 @@
+.git
+.github
+target
+.dockerignore
+Dockerfile
+app/node_modules
+app/dist
+server.log
+web_cache.json
+test_cache_*.json

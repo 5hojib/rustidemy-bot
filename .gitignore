@@ -1,4 +1,6 @@
 debug/
 target/
+server.log
+web_cache.json
 **/*.rs.bk
 *.pdb

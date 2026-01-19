@@ -14,3 +14,7 @@ scraper = "0.23"
 anyhow = "1.0"
 axum = "0.8"
 lru = "0.15"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tower-http = { version = "0.5", features = ["fs"] }
+regex = "1.10.2"

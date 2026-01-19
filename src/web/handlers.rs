@@ -1,9 +1,15 @@
-use axum::response::Html;
+use crate::web_cache::WebCache;
+use axum::{
+    extract::State,
+    response::{IntoResponse, Json},
+};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
-pub async fn home() -> Html<&'static str> {
-    Html(include_str!("../../templates/index.html"))
-}
-
-pub async fn not_found() -> Html<&'static str> {
-    Html(include_str!("../../templates/404.html"))
+pub async fn get_courses(
+    State(cache): State<Arc<Mutex<WebCache>>>,
+) -> impl IntoResponse {
+    let cache_locked = cache.lock().await;
+    let courses = cache_locked.get_all_courses();
+    Json(courses)
 }
