@@ -1,18 +1,22 @@
-FROM 5hojib/rustidemy:latest AS builder
+# Frontend build stage
+FROM node:20-slim AS frontend
+WORKDIR /app
+COPY app/package*.json ./
+RUN npm install
+COPY app/ .
+RUN npm run build
 
-COPY src/ src/
-COPY templates/ templates/
-
+# Backend build stage
+FROM rust:1.78-slim AS backend
+WORKDIR /app
+COPY backend/ .
 RUN cargo build --release
 
+# Final image
 FROM debian:bookworm-slim
-
-RUN apt-get update && apt-get install -y \
-    libpq5 \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
-COPY --from=builder /app/target/release/rustidemy-bot .
-
-CMD ["./rustidemy-bot"]
+COPY --from=frontend /app/dist ./app/dist
+COPY --from=backend /app/target/release/backend .
+ENV ROCKET_ADDRESS=0.0.0.0
+EXPOSE 3000
+CMD ["./backend"]
