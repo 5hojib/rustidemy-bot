@@ -2,9 +2,41 @@
 use std::sync::{Arc, Mutex};
 use chrono::{Utc, Duration};
 use backend::{Course, fetch_and_update_cache};
+use wiremock::{MockServer, Mock, ResponseTemplate};
+use wiremock::matchers::{method, path};
+use hyper_tls::HttpsConnector;
+use hyper_util::{client::legacy::Client, rt::TokioExecutor};
 
 #[tokio::test]
-async fn test_cache_pruning() {
+async fn test_cache_pruning_and_fetching() {
+    // Arrange
+    let server = MockServer::start().await;
+    let course_url = format!("{}/course/new", server.uri());
+
+    let rss_feed = format!(r#"
+        <rss version="2.0">
+            <channel>
+                <item>
+                    <title>New Course</title>
+                    <link>{}</link>
+                    <description>New course description</description>
+                </item>
+            </channel>
+        </rss>
+    "#, course_url);
+
+    Mock::given(method("GET"))
+        .and(path("/feed"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(rss_feed))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/course/new"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(r#"<meta property="og:image" content="new_thumbnail">"#))
+        .mount(&server)
+        .await;
+
     let cache = Arc::new(Mutex::new(vec![
         Course {
             id: "1".to_string(),
@@ -16,51 +48,19 @@ async fn test_cache_pruning() {
             high_res_cover: None,
             resolved_udemy_url: None,
             created_at: Utc::now() - Duration::days(3),
-        },
-        Course {
-            id: "2".to_string(),
-            title: "New Course".to_string(),
-            description: "".to_string(),
-            thumbnail: "".to_string(),
-            link: "new_link".to_string(),
-            category: None,
-            high_res_cover: None,
-            resolved_udemy_url: None,
-            created_at: Utc::now(),
-        },
+        }
     ]));
 
-    // Clear the cache before running the test to ensure a clean state
-    cache.lock().unwrap().clear();
+    let https = HttpsConnector::new();
+    let client = Client::builder(TokioExecutor::new()).build(https);
+    let test_rss_url = format!("{}/feed", server.uri());
 
-    cache.lock().unwrap().push(Course {
-        id: "1".to_string(),
-        title: "Old Course".to_string(),
-        description: "".to_string(),
-        thumbnail: "".to_string(),
-        link: "old_link".to_string(),
-        category: None,
-        high_res_cover: None,
-        resolved_udemy_url: None,
-        created_at: Utc::now() - Duration::days(3),
-    });
+    // Act
+    fetch_and_update_cache(cache.clone(), client, &test_rss_url).await.unwrap();
 
-    cache.lock().unwrap().push(Course {
-        id: "2".to_string(),
-        title: "New Course".to_string(),
-        description: "".to_string(),
-        thumbnail: "".to_string(),
-        link: "new_link".to_string(),
-        category: None,
-        high_res_cover: None,
-        resolved_udemy_url: None,
-        created_at: Utc::now(),
-    });
-
-    let _ = fetch_and_update_cache(cache.clone()).await;
-
+    // Assert
     let courses = cache.lock().unwrap();
-    assert!(courses.len() > 1, "Cache should have more than one course after fetching.");
-    assert!(courses.iter().any(|c| c.title == "New Course"), "Cache should contain the new course.");
-    assert!(!courses.iter().any(|c| c.title == "Old Course"), "Cache should not contain the old course.");
+    assert_eq!(courses.len(), 1);
+    assert_eq!(courses[0].title, "New Course");
+    assert!(!courses.iter().any(|c| c.title == "Old Course"));
 }

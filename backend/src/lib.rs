@@ -10,10 +10,14 @@ use std::{
     time::Duration,
 };
 use tokio::time::sleep;
-use reqwest::Client;
 use rss::Channel;
 use scraper::{Html, Selector};
 use chrono::{DateTime, Utc};
+use hyper_tls::HttpsConnector;
+use hyper_util::{client::legacy::Client, rt::TokioExecutor};
+use http_body_util::BodyExt;
+use bytes::Buf;
+use hyper::body::Incoming;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Course {
@@ -32,6 +36,7 @@ pub struct Course {
 }
 
 pub type Cache = Arc<Mutex<Vec<Course>>>;
+type HttpClient = Client<HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>, http_body_util::Full<bytes::Bytes>>;
 
 const RSS_URL: &str = "https://www.discudemy.com/feed";
 const CACHE_DURATION_MINUTES: u64 = 10;
@@ -39,10 +44,13 @@ const CACHE_EXPIRATION_DAYS: i64 = 2;
 
 pub async fn run_server() {
     let cache: Cache = Arc::new(Mutex::new(Vec::new()));
+    let https = HttpsConnector::new();
+    let client = Client::builder(TokioExecutor::new()).build(https);
 
     let initial_cache_clone = cache.clone();
+    let client_clone = client.clone();
     tokio::spawn(async move {
-        if let Err(e) = fetch_and_update_cache(initial_cache_clone).await {
+        if let Err(e) = fetch_and_update_cache(initial_cache_clone, client_clone, RSS_URL).await {
             eprintln!("Initial cache update failed: {}", e);
         }
     });
@@ -52,14 +60,14 @@ pub async fn run_server() {
         loop {
             sleep(Duration::from_secs(CACHE_DURATION_MINUTES * 60)).await;
             println!("Updating cache...");
-            if let Err(e) = fetch_and_update_cache(recurring_cache_clone.clone()).await {
+            if let Err(e) = fetch_and_update_cache(recurring_cache_clone.clone(), client.clone(), RSS_URL).await {
                 eprintln!("Scheduled cache update failed: {}", e);
             }
         }
     });
 
     let app = Router::new()
-        .nest_service("/", get_service(ServeDir::new("../app/dist")))
+        .nest_service("/", get_service(ServeDir::new("dist")))
         .route("/api/courses", get(get_courses));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -72,11 +80,14 @@ async fn get_courses(axum::extract::State(cache): axum::extract::State<Cache>) -
     (StatusCode::OK, Json(courses))
 }
 
-async fn robust_fetch(client: &Client, url: &str) -> Result<String, reqwest::Error> {
-    client.get(url).send().await?.text().await
+async fn robust_fetch(client: &HttpClient, url: &str) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let uri = url.parse()?;
+    let res = client.get(uri).await?;
+    let body_bytes = res.into_body().collect().await?.to_bytes();
+    Ok(String::from_utf8(body_bytes.to_vec())?)
 }
 
-async fn resolve_udemy_data(client: &Client, initial_url: &str) -> (Option<String>, Option<String>) {
+async fn resolve_udemy_data(client: &HttpClient, initial_url: &str) -> (Option<String>, Option<String>) {
     let meta_cover = {
         let article_html = match robust_fetch(client, initial_url).await {
             Ok(html) => html,
@@ -118,14 +129,11 @@ async fn resolve_udemy_data(client: &Client, initial_url: &str) -> (Option<Strin
     (udemy_link, meta_cover)
 }
 
-pub async fn fetch_and_update_cache(cache: Cache) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn fetch_and_update_cache(cache: Cache, client: HttpClient, rss_url: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Starting cache update process...");
-    let client = Client::builder()
-        .timeout(Duration::from_secs(15))
-        .build()?;
 
-    let rss_content = robust_fetch(&client, RSS_URL).await?;
-    let channel = Channel::read_from(&rss_content.as_bytes()[..])?;
+    let rss_content = robust_fetch(&client, rss_url).await?;
+    let channel = Channel::read_from(rss_content.as_bytes())?;
 
     let mut new_courses = Vec::new();
 
