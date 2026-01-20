@@ -5,7 +5,6 @@ use teloxide::types::ChatId;
 pub struct Config {
     pub bot_token: String,
     pub channel_id: ChatId,
-    pub feed_url: String,
 }
 
 impl Config {
@@ -17,13 +16,10 @@ impl Config {
                 .parse()
                 .context("Failed to parse CHANNEL_ID")?,
         );
-        let feed_url =
-            env::var("FEED_URL").unwrap_or_else(|_| "https://www.discudemy.com/feed".to_string());
 
         Ok(Config {
             bot_token,
             channel_id,
-            feed_url,
         })
     }
 }

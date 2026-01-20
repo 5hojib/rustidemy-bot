@@ -1,5 +1,11 @@
-use crate::{web::routes::create_routes, web_cache::WebCache};
-use std::{net::SocketAddr, sync::Arc};
+use crate::{
+    web::routes::create_routes,
+    web_cache::WebCache,
+};
+use std::{
+    net::SocketAddr,
+    sync::Arc,
+};
 use tokio::sync::Mutex;
 
 pub struct ServerConfig {

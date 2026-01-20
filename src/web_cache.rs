@@ -33,10 +33,7 @@ impl WebCache {
             path: path.to_string(),
         };
         if let Err(e) = cache.load() {
-            println!(
-                "Could not load cache file, starting with an empty cache: {}",
-                e
-            );
+            println!("Could not load cache file, starting with an empty cache: {}", e);
             // If the file doesn't exist, we create it.
             if let Err(e) = cache.save() {
                 eprintln!("Failed to create a new cache file: {}", e);
@@ -92,10 +89,7 @@ impl WebCache {
     }
 
     pub fn get_all_courses(&self) -> Vec<Course> {
-        self.entries
-            .values()
-            .map(|entry| entry.course.clone())
-            .collect()
+        self.entries.values().map(|entry| entry.course.clone()).collect()
     }
 }
 
@@ -162,9 +156,7 @@ mod tests {
         let three_days_ago = now - (3 * 24 * 60 * 60);
         old_entry.timestamp = three_days_ago;
 
-        cache
-            .entries
-            .insert(old_entry.course.url.clone(), old_entry);
+        cache.entries.insert(old_entry.course.url.clone(), old_entry);
 
         let new_course = Course {
             url: "http://example.com/new_course".to_string(),

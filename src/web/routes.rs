@@ -1,5 +1,5 @@
 use crate::{web::handlers::get_courses, web_cache::WebCache};
-use axum::{Router, routing::get};
+use axum::{routing::get, Router};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tower_http::services::{ServeDir, ServeFile};
