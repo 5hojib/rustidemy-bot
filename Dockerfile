@@ -23,6 +23,7 @@ RUN cargo build --release
 
 # Final image
 FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=frontend /app/dist ./dist
 COPY --from=backend /app/target/release/backend .
