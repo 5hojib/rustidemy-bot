@@ -1,17 +1,7 @@
 {
-  "name": "Udemy free course fetcher bot",
-  "env": {
-    "BOT_TOKEN": {
-      "description": "Your Bot token, Get it from @Botfather",
-      "value": ""
-    },
-    "CHANNEL_ID": {
-      "description": "The ID of the Telegram channel where messages will be sent",
-      "value": ""
-    }
-  },
+  "name": "Udemy Coupon Hunter",
   "formation": {
-    "worker": {
+    "web": {
       "quantity": 1,
       "size": "basic"
     }

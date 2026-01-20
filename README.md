@@ -1,13 +1,6 @@
-# rustidemy-bot
+# Udemy Coupon Hunter
 
-`rustidemy-bot` is a Telegram bot that fetches free Udemy course listings from an RSS feed and posts them to a specified Telegram channel.
-
-## Configuration
-
-Set the following environment variables:
-
-- `BOT_TOKEN` (required): Your Telegram bot token.
-- `CHANNEL_ID` (required): ID of the channel where messages will be sent.
+`Udemy Coupon Hunter` is a web application that fetches free Udemy course listings from an RSS feed and displays them in a web UI.
 
 ## Deploy
 
@@ -22,5 +15,5 @@ Set the following environment variables:
 </div><br>
 
 > [!Note]
-> If you're using Heroku eco dynos or Render free plan, use a cron job to keep the bot alive:
+> If you're using Heroku eco dynos or Render free plan, use a cron job to keep the app alive:
 https://cron-job.org
